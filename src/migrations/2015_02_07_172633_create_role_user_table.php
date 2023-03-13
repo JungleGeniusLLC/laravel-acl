@@ -14,10 +14,12 @@ class CreateRoleUserTable extends Migration
     public function up()
     {
         Schema::create('role_user', function (Blueprint $table) {
-            $table->increments('id');
-            $table->integer('role_id')->unsigned()->index()->foreign()->references("id")->on("roles")->onDelete("cascade");
-            $table->integer('user_id')->unsigned()->index()->foreign()->references("id")->on("users")->onDelete("cascade");
-            $table->timestamps();
+		$table->string('id', 36)->primary()->unique();
+		$table->string('role_id', 36)->index();
+		$table->string('user_id', 36)->index();
+		$table->timestamps();
+		$table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+		$table->foreign('role_id')->references('id')->on('roles')->onDelete('cascade');
         });
     }
 

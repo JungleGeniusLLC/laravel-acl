@@ -31,7 +31,6 @@ trait HasPermissionInheritance
         };
 
         foreach ($permissions as $row) {
-
             // permissions without inherit ids
             if ( is_null($row->inherit_id) || ! $row->inherit_id ) {
 
@@ -100,13 +99,13 @@ trait HasPermissionInheritance
 
             // replace and merge initial permission
             $permissions = array_replace_recursive($inherit->slug, $permissions, $tmp);
-
+            
             // follow along into deeper inherited permissions recursively
             while ($inherit && $inherit->inherit_id > 0 && ! is_null($inherit->inherit_id)) {
 
                 // get inherit permission from cache or sql.
                 $inherit = $this->getInherit($inherit->inherit_id);
-
+                
                 // ntfs determination
                 $letNtfs($inherit->slug);
 
@@ -175,9 +174,14 @@ trait HasPermissionInheritance
         if ( is_string($permission) || is_numeric($permission) ) {
 
             $model = config('acl.permission', 'Kodeine\Acl\Models\Eloquent\Permission');
-            $key = is_numeric($permission) ? 'id' : 'name';
-            $alias = (new $model)->where($key, $permission)->first();
 
+            if ((strlen((string) $permission) == 36) && (substr_count((string) $permission, '-') == 4)) {
+                        $key = 'id'; //uuid
+            }else{
+                        $key = is_numeric($permission) ? 'id' : 'name';
+            }
+
+            $alias = (new $model)->where($key, $permission)->first();
             if ( ! is_object($alias) || ! $alias->exists ) {
                 throw new \InvalidArgumentException('Specified permission ' . $key . ' does not exists.');
             }
@@ -190,7 +194,8 @@ trait HasPermissionInheritance
             $permission = $permission->getKey();
         }
 
-        return (int) $permission;
+        //return (int) $permission;
+        return $permission; //uuid is not (int)
     }*/
 
 }

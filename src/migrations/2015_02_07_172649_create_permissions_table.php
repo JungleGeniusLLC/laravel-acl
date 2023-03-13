@@ -14,13 +14,16 @@ class CreatePermissionsTable extends Migration
     public function up()
     {
         Schema::create('permissions', function (Blueprint $table) {
-            $table->increments('id');
-            $table->integer('inherit_id')->unsigned()->nullable()->index();
-            $table->foreign('inherit_id')->references('id')->on('permissions');
-            $table->string('name')->index();
-            $table->string('slug')->index();
-            $table->text('description')->nullable();
-            $table->timestamps();
+		$table->string('id', 36)->primary()->unique();
+		$table->string('inherit_id', 36)->nullable()->index();
+		$table->string('name')->index();
+		$table->text('slug');
+		$table->text('description')->nullable();
+		$table->timestamps();
+        });
+
+        Schema::table('permissions', function (Blueprint $table) {
+		$table->foreign('inherit_id')->references('id')->on('permissions');
         });
     }
 
