@@ -111,7 +111,11 @@ trait HasPermission
             $permissionId = $this->parsePermissionId($permission);
 
             if (! $this->permissions->keyBy('id')->has($permissionId)) {
-                $this->permissions()->attach($permissionId);
+                if ((strlen((string) $permissionId) == 36) && (substr_count((string) $permissionId, '-') == 4)) {
+                    $this->permissions()->attach($permissionId, ['id' => (string) \Webpatser\Uuid\Uuid::generate()]);
+                }else{
+                    $this->permissions()->attach($permissionId);
+                }
 
                 return $permission;
             }
@@ -149,7 +153,13 @@ trait HasPermission
         $sync = [];
         $this->mapArray($permissions, function ($permission) use (&$sync) {
 
-            $sync[] = $this->parsePermissionId($permission);
+            $permissionId = $this->parsePermissionId($permission);
+
+            if ((strlen((string) $permissionId) == 36) && (substr_count((string) $permissionId, '-') == 4)) {
+                $sync[$permissionId] = ['id' => (string) \Webpatser\Uuid\Uuid::generate()];
+            }else{
+                $sync[] = $permissionId;
+            }
 
             return $sync;
         });
@@ -186,10 +196,15 @@ trait HasPermission
         if (is_string($permission) || is_numeric($permission)) {
 
             $model = config('acl.permission', 'Kodeine\Acl\Models\Eloquent\Permission');
-            $key   = is_numeric($permission) ? 'id' : 'name';
-            $alias = (new $model)->where($key, $permission)->first();
 
-            if (! is_object($alias) || ! $alias->exists) {
+            if ((strlen((string) $permission) == 36) && (substr_count((string) $permission, '-') == 4)) {
+                        $key = 'id'; //uuid
+            }else{
+                        $key = is_numeric($permission) ? 'id' : 'name';
+            }
+
+            $alias = (new $model)->where($key, $permission)->first();
+            if ( ! is_object($alias) || ! $alias->exists ) {
                 throw new \InvalidArgumentException('Specified permission ' . $key . ' does not exists.');
             }
 
@@ -201,6 +216,7 @@ trait HasPermission
             $permission = $permission->getKey();
         }
 
-        return (int)$permission;
+        //return (int) $permission;
+        return $permission; //uuid is not (int)
     }
 }

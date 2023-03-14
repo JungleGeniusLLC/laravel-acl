@@ -128,7 +128,11 @@ trait HasRole
             $roleId = $this->parseRoleId($role);
 
             if ( ! $this->roles->keyBy('id')->has($roleId) ) {
-                $this->roles()->attach($roleId);
+                if ((strlen((string) $roleId) == 36) && (substr_count((string) $roleId, '-') == 4)) {
+                    $this->roles()->attach($roleId, ['id' => (string) \Webpatser\Uuid\Uuid::generate()]);
+                }else{
+                    $this->roles()->attach($roleId);
+                }
 
                 return $role;
             }
@@ -164,7 +168,13 @@ trait HasRole
         $sync = [];
         $this->mapArray($roles, function ($role) use (&$sync) {
 
-            $sync[] = $this->parseRoleId($role);
+            $roleId = $this->parseRoleId($role);
+
+            if ((strlen((string) $roleId) == 36) && (substr_count((string) $roleId, '-') == 4)) {
+                $sync[$roleId] = ['id' => (string) \Webpatser\Uuid\Uuid::generate()];
+            }else{
+                $sync[] = $roleId;
+            }
 
             return $sync;
         });
@@ -233,9 +243,14 @@ trait HasRole
         if ( is_string($role) || is_numeric($role) ) {
 
             $model = config('acl.role', 'Kodeine\Acl\Models\Eloquent\Role');
-            $key = is_numeric($role) ? 'id' : 'slug';
-            $alias = (new $model)->where($key, $role)->first();
 
+            if ((strlen((string) $role) == 36) && (substr_count((string) $role, '-') == 4)) {
+                        $key = 'id'; //uuid
+            }else{
+                        $key = is_numeric($role) ? 'id' : 'slug';
+            }
+
+            $alias = (new $model)->where($key, $role)->first();
             if ( ! is_object($alias) || ! $alias->exists ) {
                 throw new \InvalidArgumentException('Specified role ' . $key . ' does not exists.');
             }
@@ -248,7 +263,8 @@ trait HasRole
             $role = $role->getKey();
         }
 
-        return (int) $role;
+        //return (int) $role;
+        return $role; //uuid is not (int)
     }
 
     /*
