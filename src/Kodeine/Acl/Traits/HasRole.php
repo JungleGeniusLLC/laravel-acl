@@ -173,7 +173,7 @@ trait HasRoleImplementation
             return $sync;
         });
 
-        return $this->roles()->sync($sync);
+        return $this->roles()->sync($sync, true);
     }
 
     /**
