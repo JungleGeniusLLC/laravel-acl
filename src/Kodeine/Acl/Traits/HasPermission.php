@@ -164,7 +164,7 @@ trait HasPermission
             return $sync;
         });
 
-        return $this->permissions()->sync($sync);
+        return $this->permissions()->sync($sync, true);
     }
 
     /**
